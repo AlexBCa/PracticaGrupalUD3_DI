@@ -22,11 +22,11 @@
                <children>
                   <TableView fx:id="tabla" layoutY="24.0" prefHeight="197.0" prefWidth="598.0" AnchorPane.bottomAnchor="-2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="24.0">
                     <columns>
-                      <TableColumn prefWidth="75.0" text="Id" />
+                      <TableColumn fx:id="columnaId" prefWidth="75.0" text="Id" />
                       <TableColumn fx:id="columnaNombre" prefWidth="75.0" text="Nombre" />
-                        <TableColumn prefWidth="75.0" text="Tipo" />
-                        <TableColumn prefWidth="75.0" text="Prioridad" />
-                        <TableColumn prefWidth="277.0" text="Observaciones" />
+                        <TableColumn fx:id="columnaTipo" prefWidth="75.0" text="Tipo" />
+                        <TableColumn fx:id="columnaPrioridad" prefWidth="75.0" text="Prioridad" />
+                        <TableColumn fx:id="columnaObservaciones" prefWidth="277.0" text="Observaciones" />
                     </columns>
                      <opaqueInsets>
                         <Insets />

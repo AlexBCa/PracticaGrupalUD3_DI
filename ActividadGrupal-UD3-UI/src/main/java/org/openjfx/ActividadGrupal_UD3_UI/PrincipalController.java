@@ -36,7 +36,22 @@ public class PrincipalController implements Initializable {
 	private TableView<Servicio> tabla;
 	
 	@FXML
+    private TableColumn<Servicio, String> columnaId;
+	
+	@FXML
     private TableColumn<Servicio, String> columnaNombre;
+	
+	@FXML
+    private TableColumn<Servicio, String> columnaTipo;
+	
+	@FXML
+    private TableColumn<Servicio, String> columnaPrioridad;
+	
+	@FXML
+    private TableColumn<Servicio, String> columnaObservaciones;
+	
+	
+	
 	
 	
 	
@@ -69,7 +84,11 @@ public class PrincipalController implements Initializable {
 		
 		
 		//se envia a la celda el parametro a mostar
+		columnaId.setCellValueFactory(new PropertyValueFactory<Servicio, String>("id"));
 		columnaNombre.setCellValueFactory(new PropertyValueFactory<Servicio, String>("nombre"));
+		columnaTipo.setCellValueFactory(new PropertyValueFactory<Servicio, String>("tipo"));
+		columnaPrioridad.setCellValueFactory(new PropertyValueFactory<Servicio, String>("prioridad"));
+		columnaObservaciones.setCellValueFactory(new PropertyValueFactory<Servicio, String>("observaciones"));
 		
 		//Añadimos los servicos a la tabla.
 		tabla.setItems(listaServicios);
