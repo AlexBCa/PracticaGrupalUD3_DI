@@ -13,19 +13,23 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.util.Callback;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 
 public class PrincipalController implements Initializable {
@@ -34,7 +38,7 @@ public class PrincipalController implements Initializable {
 	private ComboBox<String> tipos;
 	
 	//Necesitamos cargar un observable con los datos
-	ObservableList<String> list = FXCollections.observableArrayList("Reparación",
+	public static final ObservableList<String> TIPOS = FXCollections.observableArrayList("Reparación",
 			"Mantenimiento", "Instalación", "Desarrollo de Software");
 	
 	
@@ -77,33 +81,64 @@ public class PrincipalController implements Initializable {
 	@FXML
 	private Button borrar;
 	
-	Manager manager;
+	private Manager manager;
 	
-	
-	
-
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		// TODO Auto-generated method stub
-		
+		editar.setDisable(true);
 		manager = new Manager();
 		manager.setup();
 		
 		
-		tipos.setItems(list);
+		tipos.setItems(TIPOS);
 		tipos.getSelectionModel().selectFirst();
 		cargarServiciosTabla();
 		añadir.setOnAction(this::botonAñadir);
 		borrar.setOnAction(this::botonBorrar);
 		
+		// Evento para comprobar si se ha seleccionado alguna fila en la tabla para habilitar o no el boton de editar
+		tabla.getSelectionModel().selectedItemProperty().addListener(new javafx.beans.value.ChangeListener<Servicio>() {
+			@Override
+			public void changed(ObservableValue<? extends Servicio> observable, Servicio oldValue, Servicio newValue) {
+				if (tabla.getSelectionModel().getSelectedItem() != null) {
+					editar.setDisable(false);
+				} else {
+					editar.setDisable(true);
+				}
+			}
+		});
 		
-		
-		
+		funcionalidadEditar(resources);
+	}
+
+	private void funcionalidadEditar(ResourceBundle resources) {
+		editar.setOnMouseClicked(event -> {
+			try {
+				// Cargamos la informacion de la ventana de edicion que abriremos
+				FXMLLoader loader = new FXMLLoader(App.class.getResource("VistaEdicion.fxml"), resources);
+				Stage stage = new Stage();
+				stage.setTitle("Editar registro");
+				Parent root = loader.load();
+				stage.setScene(new Scene(root));
+				// Añadimos la fila seleccionada al controlador para poder editarlo
+				((EdicionController) loader.getController()).initData(tabla.getSelectionModel().getSelectedItem());
+				stage.show();
+				// Evento que se lanzara al cerrar la ventana de edicion y actualizara los datos de la tabla
+				stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+					@Override
+					public void handle(WindowEvent event) {
+						cargarServiciosTabla();
+					}
+				});
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 	
 	public void cargarServiciosTabla() {
 		
-		
+		tabla.getItems().clear();
 		List<Servicio> serli = manager.findAllServicios();
 		//Creamos una lista observable donde se guardaran todos los objetos servcios.
 		ObservableList<Servicio> listaServicios = FXCollections.observableArrayList(serli);
@@ -121,9 +156,6 @@ public class PrincipalController implements Initializable {
 		tabla.setItems(listaServicios);
 		
 	}
-	
-	
-	
 	
 	public void botonAñadir(ActionEvent event) {
 		
@@ -161,15 +193,6 @@ public class PrincipalController implements Initializable {
 		}catch(javax.persistence.PersistenceException e) {
 			alerta("Id duplicada", AlertType.ERROR);
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
 	}
 	
 	public void botonBorrar(ActionEvent e) {
@@ -181,11 +204,6 @@ public class PrincipalController implements Initializable {
 			//Actualizamos la tabla
 			cargarServiciosTabla();
 		}
-		
-		
-		
-		
-		
 	}
 	
 	public int obtenerIdFoco() {
@@ -201,8 +219,6 @@ public class PrincipalController implements Initializable {
 			return 0;
 		}
 		return listaser.get(0).getId();
-		
-		
 	}
 	
 	public void alerta(String nombre, Alert.AlertType alert) {
