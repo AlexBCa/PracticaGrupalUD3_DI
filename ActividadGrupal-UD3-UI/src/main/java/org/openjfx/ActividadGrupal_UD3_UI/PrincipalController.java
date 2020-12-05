@@ -1,8 +1,11 @@
 package org.openjfx.ActividadGrupal_UD3_UI;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import org.hibernate.exception.ConstraintViolationException;
 
 import Model.Manager;
 import Model.Servicio;
@@ -12,6 +15,8 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
@@ -72,6 +77,7 @@ public class PrincipalController implements Initializable {
 	@FXML
 	private Button borrar;
 	
+	Manager manager;
 	
 	
 	
@@ -80,10 +86,15 @@ public class PrincipalController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
 		
+		manager = new Manager();
+		manager.setup();
+		
 		
 		tipos.setItems(list);
+		tipos.getSelectionModel().selectFirst();
 		cargarServiciosTabla();
 		añadir.setOnAction(this::botonAñadir);
+		borrar.setOnAction(this::botonBorrar);
 		
 		
 		
@@ -91,8 +102,8 @@ public class PrincipalController implements Initializable {
 	}
 	
 	public void cargarServiciosTabla() {
-		Manager manager = new Manager();
-		manager.setup();
+		
+		
 		List<Servicio> serli = manager.findAllServicios();
 		//Creamos una lista observable donde se guardaran todos los objetos servcios.
 		ObservableList<Servicio> listaServicios = FXCollections.observableArrayList(serli);
@@ -116,21 +127,43 @@ public class PrincipalController implements Initializable {
 	
 	public void botonAñadir(ActionEvent event) {
 		
+		try {
+			Servicio servicio = new Servicio();
+			if(id.getId().isEmpty() || nombre.getText().isEmpty()
+					||prioridad.getText().isEmpty() || observaciones.getText().isEmpty()) {
+				
+				System.out.println("Rellene todo los campos");
+			} else {
+				
+				servicio.setId(Integer.parseInt(id.getText()));
+				servicio.setNombre(nombre.getText());
+				servicio.setTipo(tipos.getValue());
+				servicio.setPrioridad(Integer.parseInt(prioridad.getText()));
+				servicio.setObservaciones(observaciones.getText());
+				
+				Manager manager = new Manager();
+				manager.setup();
+				manager.create(servicio);
+				
+				cargarServiciosTabla();
+				
+				id.setText("");
+				nombre.setText("");
+				prioridad.setText("");
+				observaciones.setText("");
+			}
+			
+			
+		}catch( ConstraintViolationException  e) {
+			//System.out.println("Duplicado");
+			//e.printStackTrace();
+			
+		}catch(javax.persistence.PersistenceException e) {
+			alerta("Id duplicada", AlertType.ERROR);
+		}
 		
 		
-		Servicio servicio = new Servicio();
 		
-		servicio.setId(Integer.parseInt(id.getText()));
-		servicio.setNombre(nombre.getText());
-		servicio.setTipo(tipos.getValue());
-		servicio.setPrioridad(Integer.parseInt(prioridad.getText()));
-		servicio.setObservaciones(observaciones.getText());
-		
-		Manager manager = new Manager();
-		manager.setup();
-		manager.create(servicio);
-		
-		cargarServiciosTabla();
 		
 		
 		
@@ -139,10 +172,43 @@ public class PrincipalController implements Initializable {
 		
 	}
 	
-	public void botonBorrar() {
+	public void botonBorrar(ActionEvent e) {
+		Servicio ser = new Servicio();
+		if(obtenerIdFoco()!=0) {
+			ser.setId(obtenerIdFoco());
+			manager.delete(ser);
+			
+			//Actualizamos la tabla
+			cargarServiciosTabla();
+		}
 		
 		
 		
+		
+		
+	}
+	
+	public int obtenerIdFoco() {
+		ObservableList<Servicio> listaser;
+		//getselectionmodel proporciona a traves de la API el elmento selecionado de la tabla
+		//del tipo tableViewSelectionModel
+		//getSelectdItem Devuelve un observableList de solo lectura con todos los elementos selecionados.
+		
+		listaser = tabla.getSelectionModel().getSelectedItems();
+		
+		if(listaser.isEmpty()) {
+			alerta("Selecione una fila para borrar", AlertType.ERROR);
+			return 0;
+		}
+		return listaser.get(0).getId();
+		
+		
+	}
+	
+	public void alerta(String nombre, Alert.AlertType alert) {
+		Alert alerta = new Alert(AlertType.ERROR, nombre);
+		
+		alerta.showAndWait();
 	}
 
 }

@@ -9,6 +9,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.exception.ConstraintViolationException;
 
 
 
@@ -35,7 +36,7 @@ public class Manager {
     	
     }
  
-    public void create(Servicio serv) {
+    public void create(Servicio serv) throws ConstraintViolationException {
         // code to save a book
     	
     	
